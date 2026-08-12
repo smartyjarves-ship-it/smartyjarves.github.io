@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JARVES AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{
+background:#0b1020;
+color:white;
+font-family:Arial;
+text-align:center;
+padding-top:50px;
+}
+button{
+padding:15px 25px;
+font-size:20px;
+border:none;
+border-radius:10px;
+background:#00aaff;
+color:white;
+}
+</style>
+</head>
+<body>
+
+<h1>🤖 JARVES AI</h1>
+<p>Welcome to my personal AI assistant website.</p>
+
+<button onclick="speak()">Talk to JARVES</button>
+
+<p id="text">G Sir. Main ready hoon.</p>
+
+<script>
+function speak(){
+document.getElementById("text").innerHTML="G Sir. Main sun raha hoon.";
+speechSynthesis.speak(
+new SpeechSynthesisUtterance("G Sir")
+);
+}
+</script>
+
+</body>
+</html>
