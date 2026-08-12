@@ -1,11 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>JARVES V6</title>
+
+<style>
+body{
+    margin:0;
+    background:#03080f;
+    color:#00eaff;
+    font-family:Arial,sans-serif;
+    text-align:center;
+}
+
+.container{
+    width:90%;
+    max-width:500px;
+    margin:30px auto;
+    padding:20px;
+    border:1px solid #00eaff;
+    border-radius:25px;
+    background:#07131d;
+    box-shadow:0 0 30px #00eaff55;
+}
+
+h1{
+    font-size:38px;
+    text-shadow:0 0 20px #00eaff;
+}
+
+#status{
+    margin:15px;
+    color:#9fffff;
+}
+
+.arc{
+    width:160px;
+    height:160px;
+    margin:25px auto;
+    border:7px solid #00eaff;
+    border-top-color:transparent;
+    border-radius:50%;
+    animation:spin 3s linear infinite;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.core{
+    width:70px;
+    height:70px;
+    background:#00eaff;
+    border-radius:50%;
+    box-shadow:0 0 40px #00eaff;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+button{
+    width:90%;
+    padding:16px;
+    margin:7px;
+    border:1px solid #00eaff;
+    border-radius:15px;
+    background:#06121b;
+    color:#00eaff;
+    font-size:17px;
+}
+
+button:active{
+    background:#00eaff;
+    color:#001018;
+}
+
+#output{
+    margin-top:20px;
+    padding:15px;
+    min-height:130px;
+    max-height:180px;
+    overflow:auto;
+    text-align:left;
+    border:1px solid #00eaff44;
+    border-radius:15px;
+}
+
+.you{
+    color:white;
+    margin:8px 0;
+}
+
+.jarves{
+    color:#00eaff;
+    margin:8px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>JARVES V6</h1>
+
+<div id="status">
+System Ready
+</div>
+
+<div class="arc">
+    <div class="core"></div>
+</div>
+
+<button onclick="startListening()">
+🎙️ Talk to Jarves
+</button>
+
+<button onclick="wakeJarves()">
+⚡ Wake Jarves
+</button>
+
+<div id="output">
+<div class="jarves">
+Jarves: Yes Sir, I am ready.
+</div>
+</div>
+
+</div>
+
+
+<script>
+
+/* ==================================
+   JARVES V6
+   SIMPLE STABLE VOICE SYSTEM
+================================== */
+
+let recognition = null;
+let isListening = false;
+
+
+/* ==================================
+   VOICE OUTPUT
+================================== */
+
+function speak(text){
+
+    try{
+
+        window.speechSynthesis.cancel();
+
+        let msg =
+            new SpeechSynthesisUtterance(text);
+
+        msg.lang = "en-US";
+        msg.rate = 0.9;
+        msg.pitch = 0.8;
+        msg.volume = 1;
+
+        window.speechSynthesis.speak(msg);
+
+    }catch(e){
+
+        console.log("Speech error:",e);
+
+    }
+}
+
+
+/* ==================================
+   SCREEN
+================================== */
+
+function addYou(text){
+
+    let box =
+        document.getElementById("output");
+
+    let line =
+        document.createElement("div");
+
+    line.className = "you";
+
+    line.innerText =
+        "You: " + text;
+
+    box.appendChild(line);
+
+    box.scrollTop =
+        box.scrollHeight;
+}
+
+
+function addJarves(text){
+
+    let box =
+        document.getElementById("output");
+
+    let line =
+        document.createElement("div");
+
+    line.className = "jarves";
+
+    line.innerText =
+        "Jarves: " + text;
+
+    box.appendChild(line);
+
+    box.scrollTop =
+        box.scrollHeight;
+}
+
+
+/* ==================================
+   MICROPHONE
+================================== */
+
+function createRecognition(){
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        document.getElementById("status")
+        .innerText =
+        "Voice not supported";
+
+        speak(
+            "Sorry Sir, voice recognition is not supported."
+        );
+
+        return null;
     }
 
 
-    else{
+    let r =
+        new SpeechRecognition();
 
-        respond(
-            "I heard you Sir. But I do not have that command yet."
+
+    /*
+       One sentence at a time
+    */
+
+    r.continuous = false;
+
+    r.interimResults = false;
+
+
+    /*
+       Roman Urdu usually works
+       better through English recognition.
+    */
+
+    r.lang = "en-US";
+
+
+    r.onstart = function(){
+
+        isListening = true;
+
+        document.getElementById("status")
+        .innerText =
+        "Listening Sir...";
+
+    };
+
+
+    r.onresult = function(event){
+
+        isListening = false;
+
+        let text =
+            event.results[0][0].transcript;
+
+        addYou(text);
+
+        document.getElementById("status")
+        .innerText =
+        "Processing...";
+
+        handleCommand(text);
+
+    };
+
+
+    r.onerror = function(event){
+
+        isListening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "Voice Error";
+
+        console.log(
+            "Recognition error:",
+            event.error
+        );
+
+
+        if(event.error === "not-allowed"){
+
+            addJarves(
+                "Sir, microphone permission allow karein."
+            );
+
+            speak(
+                "Sir, please allow microphone permission."
+            );
+
+        }
+
+        else if(event.error === "no-speech"){
+
+            addJarves(
+                "Sir, mujhe aap ki awaaz nahi mili."
+            );
+
+            speak(
+                "I did not hear you Sir."
+            );
+
+        }
+
+        else{
+
+            addJarves(
+                "Sir, voice mein problem aa gayi."
+            );
+
+        }
+
+    };
+
+
+    r.onend = function(){
+
+        isListening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "System Ready";
+
+    };
+
+
+    return r;
+}
+
+
+/* ==================================
+   START LISTENING
+================================== */
+
+function startListening(){
+
+    if(isListening){
+
+        return;
+    }
+
+
+    recognition =
+        createRecognition();
+
+
+    if(!recognition){
+
+        return;
+    }
+
+
+    try{
+
+        recognition.start();
+
+    }catch(error){
+
+        console.log(
+            "Start error:",
+            error
         );
 
     }
@@ -13,29 +392,251 @@
 }
 
 
-/* =========================
-   RESPONSE
-========================= */
+/* ==================================
+   WAKE JARVES
+================================== */
 
-function respond(text){
+function wakeJarves(){
 
-    show(text);
+    addJarves(
+        "Yes Sir, Jarves is online."
+    );
 
-    speak(text);
+    speak(
+        "Yes Sir. Jarves is online."
+    );
 
 }
 
 
-/* =========================
-   LOAD VOICES
-========================= */
+/* ==================================
+   COMMAND SYSTEM
+================================== */
 
-window.speechSynthesis.onvoiceschanged =
-function(){
+function handleCommand(text){
 
-    window.speechSynthesis.getVoices();
+    let command =
+        text.toLowerCase().trim();
 
-};
+
+    /*
+       HELLO
+    */
+
+    if(
+        command.includes("hello") ||
+        command.includes("hi") ||
+        command.includes("salam") ||
+        command.includes("aoa")
+    ){
+
+        reply(
+            "Wa Alaikum Assalam Sir. How can I help you?"
+        );
+
+        return;
+    }
+
+
+    /*
+       NAME
+    */
+
+    if(
+        command.includes("your name") ||
+        command.includes("who are you") ||
+        command.includes("tum kon ho") ||
+        command.includes("ap kon ho") ||
+        command.includes("aap kon ho") ||
+        command.includes("naam kya hai")
+    ){
+
+        reply(
+            "I am Jarves, your personal AI assistant."
+        );
+
+        return;
+    }
+
+
+    /*
+       HOW ARE YOU
+    */
+
+    if(
+        command.includes("how are you") ||
+        command.includes("kaise ho") ||
+        command.includes("kese ho") ||
+        command.includes("kaisay ho")
+    ){
+
+        reply(
+            "I am fully operational Sir."
+        );
+
+        return;
+    }
+
+
+    /*
+       YOUTUBE
+    */
+
+    if(
+        command.includes("youtube")
+    ){
+
+        reply(
+            "YouTube khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.open(
+                "https://www.youtube.com",
+                "_blank"
+            );
+
+        },800);
+
+        return;
+    }
+
+
+    /*
+       WHATSAPP
+    */
+
+    if(
+        command.includes("whatsapp") ||
+        command.includes("what's app")
+    ){
+
+        reply(
+            "WhatsApp khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.open(
+                "https://web.whatsapp.com",
+                "_blank"
+            );
+
+        },800);
+
+        return;
+    }
+
+
+    /*
+       GOOGLE
+    */
+
+    if(
+        command.includes("google")
+    ){
+
+        reply(
+            "Google khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.open(
+                "https://www.google.com",
+                "_blank"
+            );
+
+        },800);
+
+        return;
+    }
+
+
+    /*
+       TIME
+    */
+
+    if(
+        command.includes("time") ||
+        command.includes("kitne baje") ||
+        command.includes("kitne bajay") ||
+        command.includes("waqt")
+    ){
+
+        let time =
+            new Date().toLocaleTimeString();
+
+        reply(
+            "Sir, abhi time " + time + " hai."
+        );
+
+        return;
+    }
+
+
+    /*
+       DATE
+    */
+
+    if(
+        command.includes("date") ||
+        command.includes("aaj ki date") ||
+        command.includes("aj ki date")
+    ){
+
+        let date =
+            new Date().toLocaleDateString();
+
+        reply(
+            "Sir, aaj ki date " + date + " hai."
+        );
+
+        return;
+    }
+
+
+    /*
+       THANK YOU
+    */
+
+    if(
+        command.includes("thank you") ||
+        command.includes("thanks") ||
+        command.includes("shukriya")
+    ){
+
+        reply(
+            "You're welcome Sir."
+        );
+
+        return;
+    }
+
+
+    /*
+       UNKNOWN COMMAND
+    */
+
+    reply(
+        "Sir, maine suna: " + text
+    );
+
+}
+
+
+/* ==================================
+   REPLY
+================================== */
+
+function reply(text){
+
+    addJarves(text);
+
+    speak(text);
+
+}
 
 </script>
 
