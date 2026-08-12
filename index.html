@@ -1,42 +1,267 @@
 <!DOCTYPE html>
-<html>
+<html lang="ur">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JARVES AI</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <style>
-body{
-background:#0b1020;
-color:white;
-font-family:Arial;
-text-align:center;
-padding-top:50px;
+*{
+    box-sizing:border-box;
 }
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(circle at center,#18254a,#070b16 70%);
+    color:white;
+    font-family:Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:92%;
+    max-width:430px;
+    text-align:center;
+}
+
+.logo{
+    font-size:45px;
+    font-weight:bold;
+    letter-spacing:4px;
+    margin-bottom:5px;
+}
+
+.subtitle{
+    opacity:.7;
+    margin-bottom:25px;
+}
+
+.orb{
+    width:180px;
+    height:180px;
+    margin:20px auto;
+    border-radius:50%;
+    background:radial-gradient(circle,#5ee7ff,#3154d8 45%,#111936 75%);
+    box-shadow:0 0 35px #3ca9ff,0 0 80px #3154d855;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:65px;
+    transition:.3s;
+}
+
+.listening{
+    transform:scale(1.08);
+    box-shadow:0 0 55px #00eaff,0 0 110px #00eaff66;
+}
+
+.status{
+    min-height:55px;
+    font-size:20px;
+    margin:20px 0;
+}
+
 button{
-padding:15px 25px;
-font-size:20px;
-border:none;
-border-radius:10px;
-background:#00aaff;
-color:white;
+    width:90%;
+    padding:15px;
+    margin:7px;
+    border:0;
+    border-radius:15px;
+    font-size:18px;
+    font-weight:bold;
+    background:#249cff;
+    color:white;
+}
+
+button:active{
+    transform:scale(.97);
+}
+
+.note{
+    margin-top:20px;
+    opacity:.5;
+    font-size:13px;
 }
 </style>
 </head>
+
 <body>
 
-<h1>🤖 JARVES AI</h1>
-<p>Welcome to my personal AI assistant website.</p>
+<div class="container">
 
-<button onclick="speak()">Talk to JARVES</button>
+    <div class="logo">JARVES</div>
+    <div class="subtitle">Your Personal AI Assistant</div>
 
-<p id="text">G Sir. Main ready hoon.</p>
+    <div id="orb" class="orb">J</div>
+
+    <div id="status" class="status">
+        G Sir. Main ready hoon.
+    </div>
+
+    <button onclick="startListening()">
+        🎤 Talk to JARVES
+    </button>
+
+    <button onclick="sayHello()">
+        🔊 Wake JARVES
+    </button>
+
+    <div class="note">
+        Try: "YouTube kholo" • "Google kholo" • "WhatsApp kholo"
+    </div>
+
+</div>
 
 <script>
-function speak(){
-document.getElementById("text").innerHTML="G Sir. Main sun raha hoon.";
-speechSynthesis.speak(
-new SpeechSynthesisUtterance("G Sir")
-);
+
+const statusBox = document.getElementById("status");
+const orb = document.getElementById("orb");
+
+function speak(text){
+
+    statusBox.innerText = text;
+
+    if("speechSynthesis" in window){
+
+        speechSynthesis.cancel();
+
+        const voice = new SpeechSynthesisUtterance(text);
+
+        voice.lang = "ur-PK";
+        voice.rate = 0.9;
+        voice.pitch = 1;
+
+        speechSynthesis.speak(voice);
+    }
 }
+
+function sayHello(){
+
+    speak("G Sir. Main sun raha hoon.");
+
+}
+
+function startListening(){
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        speak("G Sir. Aap Chrome browser use karein.");
+
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "ur-PK";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    orb.classList.add("listening");
+
+    statusBox.innerText = "🎤 Sun raha hoon...";
+
+    recognition.start();
+
+    recognition.onresult = function(event){
+
+        const command =
+            event.results[0][0].transcript.toLowerCase();
+
+        orb.classList.remove("listening");
+
+        handleCommand(command);
+    };
+
+    recognition.onerror = function(){
+
+        orb.classList.remove("listening");
+
+        speak("G Sir. Mujhe awaaz clear nahi mili. Dobara boliye.");
+    };
+
+    recognition.onend = function(){
+
+        orb.classList.remove("listening");
+
+    };
+}
+
+
+function handleCommand(command){
+
+    speak("G Sir.");
+
+    setTimeout(function(){
+
+        if(command.includes("youtube")){
+
+            speak("G Sir. YouTube khol raha hoon.");
+
+            setTimeout(function(){
+
+                window.location.href =
+                "https://www.youtube.com/";
+
+            },1000);
+
+        }
+
+        else if(
+            command.includes("google") ||
+            command.includes("search") ||
+            command.includes("سرچ")
+        ){
+
+            speak("G Sir. Google search kar raha hoon.");
+
+            setTimeout(function(){
+
+                window.location.href =
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(command);
+
+            },1000);
+
+        }
+
+        else if(command.includes("whatsapp")){
+
+            speak("G Sir. WhatsApp khol raha hoon.");
+
+            setTimeout(function(){
+
+                window.location.href =
+                "https://web.whatsapp.com/";
+
+            },1000);
+
+        }
+
+        else if(command.includes("jarves")){
+
+            speak("G Sir. Main sun raha hoon.");
+
+        }
+
+        else{
+
+            speak(
+                "G Sir. Ye command abhi mere basic version mein available nahi hai."
+            );
+
+        }
+
+    },500);
+
+}
+
 </script>
 
 </body>
