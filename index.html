@@ -1,89 +1,111 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVES AI</title>
+<title>JARVES V3</title>
 
 <style>
 *{
-    box-sizing:border-box;
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
 body{
-    margin:0;
-    min-height:100vh;
-    background:radial-gradient(circle at center,#18254a,#070b16 70%);
-    color:white;
-    font-family:Arial,sans-serif;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+  background:#050b12;
+  color:#00eaff;
+  font-family:Arial,sans-serif;
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
 .container{
-    width:92%;
-    max-width:430px;
-    text-align:center;
+  width:95%;
+  max-width:500px;
+  height:90vh;
+  border:1px solid #00eaff;
+  border-radius:25px;
+  box-shadow:0 0 30px #00eaff55;
+  padding:25px;
+  text-align:center;
+  background:#07131d;
 }
 
-.logo{
-    font-size:45px;
-    font-weight:bold;
-    letter-spacing:4px;
-    margin-bottom:5px;
-}
-
-.subtitle{
-    opacity:.7;
-    margin-bottom:25px;
-}
-
-.orb{
-    width:180px;
-    height:180px;
-    margin:20px auto;
-    border-radius:50%;
-    background:radial-gradient(circle,#5ee7ff,#3154d8 45%,#111936 75%);
-    box-shadow:0 0 35px #3ca9ff,0 0 80px #3154d855;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:65px;
-    transition:.3s;
-}
-
-.listening{
-    transform:scale(1.08);
-    box-shadow:0 0 55px #00eaff,0 0 110px #00eaff66;
+h1{
+  font-size:35px;
+  margin-bottom:8px;
+  text-shadow:0 0 15px #00eaff;
 }
 
 .status{
-    min-height:55px;
-    font-size:20px;
-    margin:20px 0;
+  color:#8ffaff;
+  margin-bottom:20px;
+}
+
+.arc{
+  width:180px;
+  height:180px;
+  margin:20px auto;
+  border:8px solid #00eaff;
+  border-top-color:transparent;
+  border-radius:50%;
+  box-shadow:0 0 25px #00eaff;
+  animation:spin 3s linear infinite;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.core{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:#00eaff;
+  box-shadow:0 0 40px #00eaff;
+}
+
+@keyframes spin{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
 }
 
 button{
-    width:90%;
-    padding:15px;
-    margin:7px;
-    border:0;
-    border-radius:15px;
-    font-size:18px;
-    font-weight:bold;
-    background:#249cff;
-    color:white;
+  width:90%;
+  padding:15px;
+  margin:8px;
+  border:1px solid #00eaff;
+  border-radius:15px;
+  background:#07131d;
+  color:#00eaff;
+  font-size:17px;
+  cursor:pointer;
+  box-shadow:0 0 10px #00eaff44;
 }
 
-button:active{
-    transform:scale(.97);
+button:hover{
+  background:#00eaff;
+  color:#001018;
 }
 
-.note{
-    margin-top:20px;
-    opacity:.5;
-    font-size:13px;
+#output{
+  height:120px;
+  overflow:auto;
+  border:1px solid #00eaff44;
+  border-radius:15px;
+  padding:15px;
+  margin-top:15px;
+  text-align:left;
+  color:#d8ffff;
+}
+
+.small{
+  color:#6daeb5;
+  font-size:12px;
+  margin-top:15px;
 }
 </style>
 </head>
@@ -92,175 +114,305 @@ button:active{
 
 <div class="container">
 
-    <div class="logo">JARVES</div>
-    <div class="subtitle">Your Personal AI Assistant</div>
+<h1>JARVES V3</h1>
+<div class="status" id="status">System Ready</div>
 
-    <div id="orb" class="orb">J</div>
+<div class="arc">
+  <div class="core"></div>
+</div>
 
-    <div id="status" class="status">
-        G Sir. Main ready hoon.
-    </div>
+<button onclick="startJarves()">🎙️ Talk to Jarves</button>
+<button onclick="wakeJarves()">⚡ Wake Jarves</button>
 
-    <button onclick="startListening()">
-        🎤 Talk to JARVES
-    </button>
+<div id="output">
+Jarves: G Sir, I am ready.
+</div>
 
-    <button onclick="sayHello()">
-        🔊 Wake JARVES
-    </button>
-
-    <div class="note">
-        Try: "YouTube kholo" • "Google kholo" • "WhatsApp kholo"
-    </div>
+<div class="small">
+Urdu + English Voice Assistant
+</div>
 
 </div>
 
 <script>
 
-const statusBox = document.getElementById("status");
-const orb = document.getElementById("orb");
+const output = document.getElementById("output");
+const statusText = document.getElementById("status");
+
+let recognition;
+let listening = false;
+
+/* =========================
+   VOICE SETTINGS
+========================= */
 
 function speak(text){
 
-    statusBox.innerText = text;
+  window.speechSynthesis.cancel();
 
-    if("speechSynthesis" in window){
+  const speech = new SpeechSynthesisUtterance(text);
 
-        speechSynthesis.cancel();
+  speech.lang = "en-US";
 
-        const voice = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.88;
+  speech.pitch = 0.85;
+  speech.volume = 1;
 
-        voice.lang = "ur-PK";
-        voice.rate = 0.9;
-        voice.pitch = 1;
+  const voices = speechSynthesis.getVoices();
 
-        speechSynthesis.speak(voice);
-    }
+  /* Prefer natural male English voice */
+  let maleVoice = voices.find(v =>
+    /male|David|Mark|Daniel|Google US English/i.test(v.name)
+  );
+
+  if(maleVoice){
+    speech.voice = maleVoice;
+  }
+
+  speechSynthesis.speak(speech);
 }
 
-function sayHello(){
+/* =========================
+   OUTPUT
+========================= */
 
-    speak("G Sir. Main sun raha hoon.");
+function show(text){
+
+  output.innerHTML += "<br>Jarves: " + text;
+  output.scrollTop = output.scrollHeight;
 
 }
 
-function startListening(){
+/* =========================
+   RECOGNITION
+========================= */
 
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
+function setupRecognition(){
 
-    if(!SpeechRecognition){
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-        speak("G Sir. Aap Chrome browser use karein.");
+  if(!SpeechRecognition){
 
-        return;
-    }
+    show("Sorry Sir, voice recognition is not supported on this browser.");
+    return null;
+  }
 
-    const recognition = new SpeechRecognition();
+  recognition = new SpeechRecognition();
 
-    recognition.lang = "ur-PK";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+  recognition.continuous = false;
+  recognition.interimResults = false;
 
-    orb.classList.add("listening");
+  /* Urdu + English */
+  recognition.lang = "en-US";
 
-    statusBox.innerText = "🎤 Sun raha hoon...";
+  recognition.onstart = function(){
 
+    listening = true;
+    statusText.innerText = "Listening Sir...";
+
+  };
+
+  recognition.onend = function(){
+
+    listening = false;
+    statusText.innerText = "System Ready";
+
+  };
+
+  recognition.onerror = function(){
+
+    listening = false;
+    statusText.innerText = "Voice Error";
+
+  };
+
+  recognition.onresult = function(event){
+
+    const command =
+      event.results[0][0].transcript.toLowerCase();
+
+    output.innerHTML +=
+      "<br><span style='color:#00eaff'>You:</span> "
+      + command;
+
+    processCommand(command);
+
+  };
+
+  return recognition;
+}
+
+/* =========================
+   START JARVES
+========================= */
+
+function startJarves(){
+
+  if(!recognition){
+    setupRecognition();
+  }
+
+  if(recognition){
     recognition.start();
-
-    recognition.onresult = function(event){
-
-        const command =
-            event.results[0][0].transcript.toLowerCase();
-
-        orb.classList.remove("listening");
-
-        handleCommand(command);
-    };
-
-    recognition.onerror = function(){
-
-        orb.classList.remove("listening");
-
-        speak("G Sir. Mujhe awaaz clear nahi mili. Dobara boliye.");
-    };
-
-    recognition.onend = function(){
-
-        orb.classList.remove("listening");
-
-    };
-}
-
-
-function handleCommand(command){
-
-    speak("G Sir.");
-
-    setTimeout(function(){
-
-        if(command.includes("youtube")){
-
-            speak("G Sir. YouTube khol raha hoon.");
-
-            setTimeout(function(){
-
-                window.location.href =
-                "https://www.youtube.com/";
-
-            },1000);
-
-        }
-
-        else if(
-            command.includes("google") ||
-            command.includes("search") ||
-            command.includes("سرچ")
-        ){
-
-            speak("G Sir. Google search kar raha hoon.");
-
-            setTimeout(function(){
-
-                window.location.href =
-                "https://www.google.com/search?q=" +
-                encodeURIComponent(command);
-
-            },1000);
-
-        }
-
-        else if(command.includes("whatsapp")){
-
-            speak("G Sir. WhatsApp khol raha hoon.");
-
-            setTimeout(function(){
-
-                window.location.href =
-                "https://web.whatsapp.com/";
-
-            },1000);
-
-        }
-
-        else if(command.includes("jarves")){
-
-            speak("G Sir. Main sun raha hoon.");
-
-        }
-
-        else{
-
-            speak(
-                "G Sir. Ye command abhi mere basic version mein available nahi hai."
-            );
-
-        }
-
-    },500);
+  }
 
 }
+
+/* =========================
+   WAKE JARVES
+========================= */
+
+function wakeJarves(){
+
+  speak("Yes Sir. Jarves is online.");
+
+  show("Yes Sir. Jarves is online.");
+
+  setTimeout(()=>{
+    startJarves();
+  },1800);
+
+}
+
+/* =========================
+   COMMAND SYSTEM
+========================= */
+
+function processCommand(command){
+
+  if(
+    command.includes("hello") ||
+    command.includes("hi") ||
+    command.includes("salam")
+  ){
+
+    respond("Hello Sir. How can I help you?");
+
+  }
+
+  else if(
+    command.includes("how are you")
+  ){
+
+    respond("I am perfectly operational Sir.");
+
+  }
+
+  else if(
+    command.includes("your name") ||
+    command.includes("who are you")
+  ){
+
+    respond("I am Jarves, your personal AI assistant.");
+
+  }
+
+  else if(
+    command.includes("youtube")
+  ){
+
+    respond("Opening YouTube Sir.");
+
+    window.open(
+      "https://www.youtube.com",
+      "_blank"
+    );
+
+  }
+
+  else if(
+    command.includes("google")
+  ){
+
+    respond("Opening Google Sir.");
+
+    window.open(
+      "https://www.google.com",
+      "_blank"
+    );
+
+  }
+
+  else if(
+    command.includes("whatsapp")
+  ){
+
+    respond("Opening WhatsApp Sir.");
+
+    window.open(
+      "https://web.whatsapp.com",
+      "_blank"
+    );
+
+  }
+
+  else if(
+    command.includes("time")
+  ){
+
+    const now = new Date();
+
+    const time =
+      now.toLocaleTimeString();
+
+    respond("Sir, the current time is " + time);
+
+  }
+
+  else if(
+    command.includes("date")
+  ){
+
+    const now = new Date();
+
+    const date =
+      now.toLocaleDateString();
+
+    respond("Sir, today's date is " + date);
+
+  }
+
+  else if(
+    command.includes("jarves") ||
+    command.includes("jarvis")
+  ){
+
+    respond("Yes Sir. I am listening.");
+
+  }
+
+  else{
+
+    respond(
+      "I heard you Sir, but I don't have that command yet."
+    );
+
+  }
+
+}
+
+/* =========================
+   RESPONSE
+========================= */
+
+function respond(text){
+
+  show(text);
+  speak(text);
+
+}
+
+/* =========================
+   LOAD VOICES
+========================= */
+
+speechSynthesis.onvoiceschanged = function(){
+
+  speechSynthesis.getVoices();
+
+};
 
 </script>
 
