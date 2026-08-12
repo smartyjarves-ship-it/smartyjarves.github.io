@@ -1,112 +1,96 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVES V3</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>JARVES V4</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-}
 
 body{
-  background:#050b12;
-  color:#00eaff;
-  font-family:Arial,sans-serif;
-  height:100vh;
-  overflow:hidden;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+    margin:0;
+    background:#02070d;
+    color:#00eaff;
+    font-family:Arial,sans-serif;
+    text-align:center;
 }
 
 .container{
-  width:95%;
-  max-width:500px;
-  height:90vh;
-  border:1px solid #00eaff;
-  border-radius:25px;
-  box-shadow:0 0 30px #00eaff55;
-  padding:25px;
-  text-align:center;
-  background:#07131d;
+    width:90%;
+    max-width:500px;
+    margin:30px auto;
+    padding:25px;
+    border:1px solid #00eaff;
+    border-radius:25px;
+    box-shadow:0 0 30px #00eaff55;
+    background:#07131c;
 }
 
 h1{
-  font-size:35px;
-  margin-bottom:8px;
-  text-shadow:0 0 15px #00eaff;
+    font-size:38px;
+    text-shadow:0 0 20px #00eaff;
 }
 
-.status{
-  color:#8ffaff;
-  margin-bottom:20px;
+#status{
+    margin:15px;
+    color:#8fffff;
 }
 
-.arc{
-  width:180px;
-  height:180px;
-  margin:20px auto;
-  border:8px solid #00eaff;
-  border-top-color:transparent;
-  border-radius:50%;
-  box-shadow:0 0 25px #00eaff;
-  animation:spin 3s linear infinite;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+.reactor{
+    width:170px;
+    height:170px;
+    margin:25px auto;
+    border:8px solid #00eaff;
+    border-top-color:transparent;
+    border-radius:50%;
+    animation:rotate 3s linear infinite;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 25px #00eaff;
 }
 
 .core{
-  width:90px;
-  height:90px;
-  border-radius:50%;
-  background:#00eaff;
-  box-shadow:0 0 40px #00eaff;
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    background:#00eaff;
+    box-shadow:0 0 40px #00eaff;
 }
 
-@keyframes spin{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
+@keyframes rotate{
+    100%{
+        transform:rotate(360deg);
+    }
 }
 
 button{
-  width:90%;
-  padding:15px;
-  margin:8px;
-  border:1px solid #00eaff;
-  border-radius:15px;
-  background:#07131d;
-  color:#00eaff;
-  font-size:17px;
-  cursor:pointer;
-  box-shadow:0 0 10px #00eaff44;
+    width:90%;
+    padding:16px;
+    margin:8px;
+    border-radius:15px;
+    border:1px solid #00eaff;
+    background:#06121b;
+    color:#00eaff;
+    font-size:17px;
 }
 
-button:hover{
-  background:#00eaff;
-  color:#001018;
+button:active{
+    background:#00eaff;
+    color:#001018;
 }
 
 #output{
-  height:120px;
-  overflow:auto;
-  border:1px solid #00eaff44;
-  border-radius:15px;
-  padding:15px;
-  margin-top:15px;
-  text-align:left;
-  color:#d8ffff;
+    margin-top:20px;
+    padding:15px;
+    height:130px;
+    overflow:auto;
+    text-align:left;
+    border:1px solid #00eaff44;
+    border-radius:15px;
 }
 
-.small{
-  color:#6daeb5;
-  font-size:12px;
-  margin-top:15px;
-}
 </style>
 </head>
 
@@ -114,284 +98,419 @@ button:hover{
 
 <div class="container">
 
-<h1>JARVES V3</h1>
-<div class="status" id="status">System Ready</div>
+<h1>JARVES</h1>
 
-<div class="arc">
-  <div class="core"></div>
+<div id="status">
+System Ready
 </div>
 
-<button onclick="startJarves()">🎙️ Talk to Jarves</button>
-<button onclick="wakeJarves()">⚡ Wake Jarves</button>
+<div class="reactor">
+    <div class="core"></div>
+</div>
+
+<button onclick="talkToJarves()">
+🎙️ Talk to Jarves
+</button>
+
+<button onclick="wakeJarves()">
+⚡ Wake Jarves
+</button>
 
 <div id="output">
-Jarves: G Sir, I am ready.
-</div>
-
-<div class="small">
-Urdu + English Voice Assistant
+Jarves: Yes Sir, I am ready.
 </div>
 
 </div>
+
 
 <script>
 
-const output = document.getElementById("output");
-const statusText = document.getElementById("status");
-
-let recognition;
+let recognition = null;
 let listening = false;
 
+
 /* =========================
-   VOICE SETTINGS
+   VOICE OUTPUT
 ========================= */
 
 function speak(text){
 
-  window.speechSynthesis.cancel();
+    window.speechSynthesis.cancel();
 
-  const speech = new SpeechSynthesisUtterance(text);
+    let voice =
+        new SpeechSynthesisUtterance(text);
 
-  speech.lang = "en-US";
+    voice.lang = "en-US";
 
-  speech.rate = 0.88;
-  speech.pitch = 0.85;
-  speech.volume = 1;
+    voice.rate = 0.9;
+    voice.pitch = 0.8;
+    voice.volume = 1;
 
-  const voices = speechSynthesis.getVoices();
+    let voices =
+        window.speechSynthesis.getVoices();
 
-  /* Prefer natural male English voice */
-  let maleVoice = voices.find(v =>
-    /male|David|Mark|Daniel|Google US English/i.test(v.name)
-  );
+    let male =
+        voices.find(v =>
+            /David|Mark|Daniel|George|Male/i
+            .test(v.name)
+        );
 
-  if(maleVoice){
-    speech.voice = maleVoice;
-  }
+    if(male){
+        voice.voice = male;
+    }
 
-  speechSynthesis.speak(speech);
+    window.speechSynthesis.speak(voice);
 }
 
+
 /* =========================
-   OUTPUT
+   SHOW MESSAGE
 ========================= */
 
-function show(text){
+function show(message){
 
-  output.innerHTML += "<br>Jarves: " + text;
-  output.scrollTop = output.scrollHeight;
+    let box =
+        document.getElementById("output");
 
+    box.innerHTML +=
+        "<br>Jarves: " + message;
+
+    box.scrollTop =
+        box.scrollHeight;
 }
 
+
 /* =========================
-   RECOGNITION
+   CREATE MICROPHONE
 ========================= */
 
-function setupRecognition(){
+function createRecognition(){
 
-  const SpeechRecognition =
-    window.SpeechRecognition ||
-    window.webkitSpeechRecognition;
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
 
-  if(!SpeechRecognition){
+    if(!SpeechRecognition){
 
-    show("Sorry Sir, voice recognition is not supported on this browser.");
-    return null;
-  }
+        document.getElementById("status")
+        .innerText =
+        "Voice recognition not supported";
 
-  recognition = new SpeechRecognition();
+        speak(
+            "Sorry Sir, voice recognition is not supported."
+        );
 
-  recognition.continuous = false;
-  recognition.interimResults = false;
+        return null;
+    }
 
-  /* Urdu + English */
-  recognition.lang = "en-US";
 
-  recognition.onstart = function(){
+    let r =
+        new SpeechRecognition();
 
-    listening = true;
-    statusText.innerText = "Listening Sir...";
 
-  };
+    /*
+       IMPORTANT SETTINGS
+    */
 
-  recognition.onend = function(){
+    r.continuous = false;
 
-    listening = false;
-    statusText.innerText = "System Ready";
+    r.interimResults = false;
 
-  };
+    /*
+       English recognition
+       usually works better
+       on Chrome Android
+    */
 
-  recognition.onerror = function(){
+    r.lang = "en-US";
 
-    listening = false;
-    statusText.innerText = "Voice Error";
 
-  };
+    r.onstart = function(){
 
-  recognition.onresult = function(event){
+        listening = true;
 
-    const command =
-      event.results[0][0].transcript.toLowerCase();
+        document.getElementById("status")
+        .innerText =
+        "Listening Sir...";
 
-    output.innerHTML +=
-      "<br><span style='color:#00eaff'>You:</span> "
-      + command;
+    };
 
-    processCommand(command);
 
-  };
+    r.onresult = function(event){
 
-  return recognition;
+        listening = false;
+
+        let text =
+            event.results[0][0].transcript;
+
+        document.getElementById("status")
+        .innerText =
+        "Processing...";
+
+        document.getElementById("output")
+        .innerHTML +=
+        "<br><span style='color:#fff'>You: "
+        + text +
+        "</span>";
+
+        processCommand(text.toLowerCase());
+
+    };
+
+
+    r.onerror = function(event){
+
+        listening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "Voice Error";
+
+        console.log(
+            "Voice Error:",
+            event.error
+        );
+
+        /*
+           Friendly error messages
+        */
+
+        if(event.error === "not-allowed"){
+
+            speak(
+                "Sir, please allow microphone permission."
+            );
+
+        }
+
+        else if(event.error === "no-speech"){
+
+            speak(
+                "I did not hear you Sir. Please try again."
+            );
+
+        }
+
+        else{
+
+            speak(
+                "Sorry Sir, I could not understand the voice system."
+            );
+
+        }
+
+    };
+
+
+    r.onend = function(){
+
+        listening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "System Ready";
+
+    };
+
+
+    return r;
 }
 
+
 /* =========================
-   START JARVES
+   TALK
 ========================= */
 
-function startJarves(){
+function talkToJarves(){
 
-  if(!recognition){
-    setupRecognition();
-  }
+    if(listening){
 
-  if(recognition){
-    recognition.start();
-  }
+        return;
+    }
+
+
+    /*
+       Create fresh recognition
+       every time
+    */
+
+    recognition =
+        createRecognition();
+
+
+    if(!recognition){
+
+        return;
+    }
+
+
+    try{
+
+        recognition.start();
+
+    }
+
+    catch(error){
+
+        console.log(error);
+
+    }
 
 }
 
+
 /* =========================
-   WAKE JARVES
+   WAKE
 ========================= */
 
 function wakeJarves(){
 
-  speak("Yes Sir. Jarves is online.");
+    speak(
+        "Yes Sir. Jarves is online."
+    );
 
-  show("Yes Sir. Jarves is online.");
-
-  setTimeout(()=>{
-    startJarves();
-  },1800);
+    show(
+        "Yes Sir. Jarves is online."
+    );
 
 }
 
+
 /* =========================
-   COMMAND SYSTEM
+   COMMAND PROCESSOR
 ========================= */
 
 function processCommand(command){
 
-  if(
-    command.includes("hello") ||
-    command.includes("hi") ||
-    command.includes("salam")
-  ){
 
-    respond("Hello Sir. How can I help you?");
+    if(
+        command.includes("hello") ||
+        command.includes("hi") ||
+        command.includes("salam")
+    ){
 
-  }
+        respond(
+            "Hello Sir. How can I help you?"
+        );
 
-  else if(
-    command.includes("how are you")
-  ){
+    }
 
-    respond("I am perfectly operational Sir.");
 
-  }
+    else if(
+        command.includes("jarvis") ||
+        command.includes("jarves")
+    ){
 
-  else if(
-    command.includes("your name") ||
-    command.includes("who are you")
-  ){
+        respond(
+            "Yes Sir. I am listening."
+        );
 
-    respond("I am Jarves, your personal AI assistant.");
+    }
 
-  }
 
-  else if(
-    command.includes("youtube")
-  ){
+    else if(
+        command.includes("how are you")
+    ){
 
-    respond("Opening YouTube Sir.");
+        respond(
+            "I am fully operational Sir."
+        );
 
-    window.open(
-      "https://www.youtube.com",
-      "_blank"
-    );
+    }
 
-  }
 
-  else if(
-    command.includes("google")
-  ){
+    else if(
+        command.includes("your name") ||
+        command.includes("who are you")
+    ){
 
-    respond("Opening Google Sir.");
+        respond(
+            "I am Jarves, your personal AI assistant."
+        );
 
-    window.open(
-      "https://www.google.com",
-      "_blank"
-    );
+    }
 
-  }
 
-  else if(
-    command.includes("whatsapp")
-  ){
+    else if(
+        command.includes("time")
+    ){
 
-    respond("Opening WhatsApp Sir.");
+        let time =
+            new Date().toLocaleTimeString();
 
-    window.open(
-      "https://web.whatsapp.com",
-      "_blank"
-    );
+        respond(
+            "Sir, the current time is "
+            + time
+        );
 
-  }
+    }
 
-  else if(
-    command.includes("time")
-  ){
 
-    const now = new Date();
+    else if(
+        command.includes("date")
+    ){
 
-    const time =
-      now.toLocaleTimeString();
+        let date =
+            new Date().toLocaleDateString();
 
-    respond("Sir, the current time is " + time);
+        respond(
+            "Sir, today's date is "
+            + date
+        );
 
-  }
+    }
 
-  else if(
-    command.includes("date")
-  ){
 
-    const now = new Date();
+    else if(
+        command.includes("youtube")
+    ){
 
-    const date =
-      now.toLocaleDateString();
+        respond(
+            "Opening YouTube Sir."
+        );
 
-    respond("Sir, today's date is " + date);
+        setTimeout(function(){
 
-  }
+            window.open(
+                "https://www.youtube.com",
+                "_blank"
+            );
 
-  else if(
-    command.includes("jarves") ||
-    command.includes("jarvis")
-  ){
+        },1000);
 
-    respond("Yes Sir. I am listening.");
+    }
 
-  }
 
-  else{
+    else if(
+        command.includes("google")
+    ){
 
-    respond(
-      "I heard you Sir, but I don't have that command yet."
-    );
+        respond(
+            "Opening Google Sir."
+        );
 
-  }
+        setTimeout(function(){
+
+            window.open(
+                "https://www.google.com",
+                "_blank"
+            );
+
+        },1000);
+
+    }
+
+
+    else{
+
+        respond(
+            "I heard you Sir. But I do not have that command yet."
+        );
+
+    }
 
 }
+
 
 /* =========================
    RESPONSE
@@ -399,18 +518,21 @@ function processCommand(command){
 
 function respond(text){
 
-  show(text);
-  speak(text);
+    show(text);
+
+    speak(text);
 
 }
+
 
 /* =========================
    LOAD VOICES
 ========================= */
 
-speechSynthesis.onvoiceschanged = function(){
+window.speechSynthesis.onvoiceschanged =
+function(){
 
-  speechSynthesis.getVoices();
+    window.speechSynthesis.getVoices();
 
 };
 
