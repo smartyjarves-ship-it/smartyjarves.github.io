@@ -1,39 +1,3 @@
-<!DOCTYPE html>
-<html>
-<body style="background:#050b12;color:#00eaff;text-align:center;font-family:Arial">
-
-<h2>JARVES VOICE TEST</h2>
-
-<button onclick="listen()" style="padding:20px;font-size:20px">
-🎙️ START
-</button>
-
-<p id="status">Ready</p>
-<p id="result"></p>
-
-<script>
-
-function listen(){
-
-    const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-    if(!SpeechRecognition){
-
-        document.getElementById("status").innerText =
-        "Speech Recognition NOT supported";
-
-        return;
-    }
-
-    const r = new SpeechRecognition();
-
-    r.lang = "en-US";
-    r.continuous = false;
-    r.interimResults = false;
-
-    r.onstart = function(){
 
         document.getElementById("status").innerText =
         "LISTENING...";
