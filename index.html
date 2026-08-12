@@ -1,37 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JARVES V8</title>
 
-        document.getElementById("status").innerText =
-        "LISTENING...";
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#02070d;
+    color:#00eaff;
+    font-family:Arial,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:94%;
+    max-width:520px;
+    min-height:90vh;
+    padding:22px;
+    text-align:center;
+    border:1px solid #00eaff;
+    border-radius:26px;
+    background:linear-gradient(145deg,#07131d,#020910);
+    box-shadow:
+        0 0 20px #00eaff55,
+        inset 0 0 25px #00eaff11;
+}
+
+h1{
+    margin:5px 0;
+    font-size:38px;
+    letter-spacing:4px;
+    text-shadow:0 0 18px #00eaff;
+}
+
+.subtitle{
+    font-size:12px;
+    color:#73dfe8;
+    letter-spacing:2px;
+}
+
+#status{
+    margin:14px 0;
+    color:#a5ffff;
+    min-height:20px;
+}
+
+.reactor{
+    width:190px;
+    height:190px;
+    margin:20px auto;
+    border:8px solid #00eaff;
+    border-top-color:transparent;
+    border-bottom-color:#006b7a;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 55px #00eaff33;
+    animation:spin 4s linear infinite;
+}
+
+.core{
+    width:92px;
+    height:92px;
+    border-radius:50%;
+    background:#00eaff;
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 55px #00eaff,
+        0 0 90px #00eaff66;
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes spin{
+    from{transform:rotate(0deg)}
+    to{transform:rotate(360deg)}
+}
+
+@keyframes pulse{
+    0%,100%{transform:scale(.9)}
+    50%{transform:scale(1)}
+}
+
+button{
+    width:92%;
+    padding:16px;
+    margin:7px;
+    border:1px solid #00eaff;
+    border-radius:16px;
+    background:#06131c;
+    color:#00eaff;
+    font-size:17px;
+    box-shadow:0 0 10px #00eaff22;
+}
+
+button:active{
+    background:#00eaff;
+    color:#001018;
+}
+
+#output{
+    height:180px;
+    overflow-y:auto;
+    margin-top:18px;
+    padding:14px;
+    border:1px solid #00eaff44;
+    border-radius:16px;
+    text-align:left;
+    background:#020910;
+}
+
+.you{
+    color:#ffffff;
+    margin:9px 0;
+}
+
+.jarves{
+    color:#00eaff;
+    margin:9px 0;
+}
+
+.error{
+    color:#ff7777;
+    margin:9px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>JARVES</h1>
+
+<div class="subtitle">
+PERSONAL AI ASSISTANT • V8
+</div>
+
+<div id="status">
+System Ready
+</div>
+
+<div class="reactor">
+    <div class="core"></div>
+</div>
+
+<button onclick="talkToJarves()">
+🎙️ Talk to Jarves
+</button>
+
+<button onclick="wakeJarves()">
+⚡ Wake Jarves
+</button>
+
+<div id="output">
+
+<div class="jarves">
+Jarves: Yes Sir, I am ready.
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================
+   JARVES V8
+========================================= */
+
+let recognition = null;
+let listening = false;
+
+
+/* =========================================
+   VOICE OUTPUT
+========================================= */
+
+function speak(text){
+
+    try{
+
+        window.speechSynthesis.cancel();
+
+        const msg =
+            new SpeechSynthesisUtterance(text);
+
+        msg.lang = "en-US";
+        msg.rate = 0.88;
+        msg.pitch = 0.82;
+        msg.volume = 1;
+
+        const voices =
+            window.speechSynthesis.getVoices();
+
+        const male =
+            voices.find(v =>
+                /David|Mark|Daniel|George|Male/i
+                .test(v.name)
+            );
+
+        if(male){
+            msg.voice = male;
+        }
+
+        window.speechSynthesis.speak(msg);
+
+    }catch(e){
+
+        console.log(e);
+
+    }
+}
+
+
+/* =========================================
+   SCREEN MESSAGE
+========================================= */
+
+function addMessage(type,text){
+
+    const box =
+        document.getElementById("output");
+
+    const div =
+        document.createElement("div");
+
+    div.className = type;
+
+    if(type === "you"){
+        div.innerText = "You: " + text;
+    }
+
+    else if(type === "jarves"){
+        div.innerText = "Jarves: " + text;
+    }
+
+    else{
+        div.innerText = text;
+    }
+
+    box.appendChild(div);
+
+    box.scrollTop =
+        box.scrollHeight;
+}
+
+
+/* =========================================
+   JARVES RESPONSE
+========================================= */
+
+function reply(text){
+
+    addMessage("jarves",text);
+    speak(text);
+
+}
+
+
+/* =========================================
+   WAKE
+========================================= */
+
+function wakeJarves(){
+
+    reply(
+        "Yes Sir. Jarves is online."
+    );
+
+}
+
+
+/* =========================================
+   MICROPHONE
+========================================= */
+
+function talkToJarves(){
+
+    if(listening){
+        return;
+    }
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+
+        addMessage(
+            "error",
+            "Voice recognition is not supported in this Chrome."
+        );
+
+        return;
+    }
+
+
+    recognition =
+        new SpeechRecognition();
+
+
+    /*
+       Roman Urdu + English
+    */
+
+    recognition.lang = "en-US";
+
+    recognition.continuous = false;
+
+    recognition.interimResults = false;
+
+    recognition.maxAlternatives = 3;
+
+
+    recognition.onstart = function(){
+
+        listening = true;
+
+        document.getElementById("status")
+        .innerText =
+        "Listening Sir...";
 
     };
 
-    r.onresult = function(event){
+
+    recognition.onresult = function(event){
+
+        listening = false;
 
         const text =
-        event.results[0][0].transcript;
+            event.results[0][0].transcript;
 
-        document.getElementById("result").innerText =
-        "YOU SAID: " + text;
+        addMessage(
+            "you",
+            text
+        );
 
-        document.getElementById("status").innerText =
-        "SUCCESS";
+        document.getElementById("status")
+        .innerText =
+        "Processing...";
 
-    };
-
-    r.onerror = function(event){
-
-        document.getElementById("status").innerText =
-        "ERROR: " + event.error;
+        processCommand(text);
 
     };
 
-    r.onend = function(){
 
-        console.log("Recognition ended");
+    recognition.onerror = function(event){
+
+        listening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "System Ready";
+
+        if(event.error === "not-allowed"){
+
+            addMessage(
+                "error",
+                "Microphone permission is required."
+            );
+
+            speak(
+                "Sir, please allow microphone permission."
+            );
+
+        }
+
+        else if(event.error === "no-speech"){
+
+            addMessage(
+                "error",
+                "I did not hear you Sir."
+            );
+
+        }
+
+        else{
+
+            addMessage(
+                "error",
+                "Voice error: " + event.error
+            );
+
+        }
 
     };
 
-    r.start();
+
+    recognition.onend = function(){
+
+        listening = false;
+
+        document.getElementById("status")
+        .innerText =
+        "System Ready";
+
+    };
+
+
+    try{
+
+        recognition.start();
+
+    }catch(error){
+
+        listening = false;
+
+        console.log(error);
+
+    }
+
 }
+
+
+/* =========================================
+   NORMALIZE
+========================================= */
+
+function clean(text){
+
+    return text
+        .toLowerCase()
+        .replace(/[.,!?]/g," ")
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+/* =========================================
+   COMMAND PROCESSOR
+========================================= */
+
+function processCommand(original){
+
+    const command =
+        clean(original);
+
+
+    /* -------------------------
+       GREETING
+    ------------------------- */
+
+    if(has(command,[
+        "hello",
+        "hi",
+        "hey",
+        "salam",
+        "assalamualaikum",
+        "aoa"
+    ])){
+
+        reply(
+            "Wa Alaikum Assalam Sir. How can I help you?"
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       JARVES
+    ------------------------- */
+
+    if(has(command,[
+        "jarves",
+        "jarvis"
+    ])){
+
+        reply(
+            "Yes Sir. I am listening."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       WHO ARE YOU
+    ------------------------- */
+
+    if(has(command,[
+        "who are you",
+        "what is your name",
+        "your name",
+        "tum kon ho",
+        "ap kon ho",
+        "aap kon ho",
+        "naam kya hai",
+        "ap ka naam"
+    ])){
+
+        reply(
+            "I am Jarves, your personal AI assistant."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       HOW ARE YOU
+    ------------------------- */
+
+    if(has(command,[
+        "how are you",
+        "kaise ho",
+        "kese ho",
+        "kaisay ho"
+    ])){
+
+        reply(
+            "I am fully operational Sir."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       YOUTUBE
+    ------------------------- */
+
+    if(has(command,[
+        "youtube",
+        "you tube",
+        "youtube kholo",
+        "youtube khol",
+        "youtube open"
+    ])){
+
+        reply(
+            "YouTube khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.location.href =
+            "https://www.youtube.com/";
+
+        },900);
+
+        return;
+    }
+
+
+    /* -------------------------
+       WHATSAPP
+    ------------------------- */
+
+    if(has(command,[
+        "whatsapp",
+        "what's app",
+        "whats app",
+        "whatsapp kholo",
+        "whatsapp khol"
+    ])){
+
+        reply(
+            "WhatsApp Web khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.location.href =
+            "https://web.whatsapp.com/";
+
+        },900);
+
+        return;
+    }
+
+
+    /* -------------------------
+       FACEBOOK
+    ------------------------- */
+
+    if(has(command,[
+        "facebook",
+        "facebook kholo",
+        "facebook khol"
+    ])){
+
+        reply(
+            "Facebook khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.location.href =
+            "https://www.facebook.com/";
+
+        },900);
+
+        return;
+    }
+
+
+    /* -------------------------
+       INSTAGRAM
+    ------------------------- */
+
+    if(has(command,[
+        "instagram",
+        "instagram kholo",
+        "instagram khol"
+    ])){
+
+        reply(
+            "Instagram khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.location.href =
+            "https://www.instagram.com/";
+
+        },900);
+
+        return;
+    }
+
+
+    /* -------------------------
+       GOOGLE SEARCH
+    ------------------------- */
+
+    if(
+        command.includes("search") ||
+        command.includes("search karo") ||
+        command.includes("search kar") ||
+        command.includes("dhoondo") ||
+        command.includes("dhundo") ||
+        command.includes("khojo") ||
+        command.includes("talash karo") ||
+        command.includes("talash kar")
+    ){
+
+        const query =
+            extractSearch(command);
+
+        if(query){
+
+            reply(
+                "Google par " +
+                query +
+                " search kar raha hoon Sir."
+            );
+
+            setTimeout(function(){
+
+                window.location.href =
+                "https://www.google.com/search?q="
+                + encodeURIComponent(query);
+
+            },900);
+
+        }else{
+
+            reply(
+                "Sir, kya search karna hai?"
+            );
+
+        }
+
+        return;
+    }
+
+
+    /* -------------------------
+       GOOGLE OPEN
+    ------------------------- */
+
+    if(
+        command === "google" ||
+        command.includes("google kholo") ||
+        command.includes("google khol") ||
+        command.includes("google open") ||
+        command.includes("open google")
+    ){
+
+        reply(
+            "Google khol raha hoon Sir."
+        );
+
+        setTimeout(function(){
+
+            window.location.href =
+            "https://www.google.com/";
+
+        },900);
+
+        return;
+    }
+
+
+    /* -------------------------
+       TIME
+    ------------------------- */
+
+    if(has(command,[
+        "time",
+        "time batao",
+        "waqt batao",
+        "kitne baje",
+        "kitne bajay",
+        "abhi kitne baje"
+    ])){
+
+        const time =
+            new Date().toLocaleTimeString();
+
+        reply(
+            "Sir, abhi " +
+            time +
+            " hai."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       DATE
+    ------------------------- */
+
+    if(has(command,[
+        "date",
+        "date batao",
+        "aaj ki date",
+        "aj ki date",
+        "today date"
+    ])){
+
+        const date =
+            new Date().toLocaleDateString();
+
+        reply(
+            "Sir, aaj ki date " +
+            date +
+            " hai."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       THANKS
+    ------------------------- */
+
+    if(has(command,[
+        "thank you",
+        "thanks",
+        "shukriya"
+    ])){
+
+        reply(
+            "You're welcome Sir."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       STOP
+    ------------------------- */
+
+    if(has(command,[
+        "stop",
+        "bas karo",
+        "band karo",
+        "chup ho jao"
+    ])){
+
+        window.speechSynthesis.cancel();
+
+        addMessage(
+            "jarves",
+            "Okay Sir."
+        );
+
+        return;
+    }
+
+
+    /* -------------------------
+       UNKNOWN
+    ------------------------- */
+
+    reply(
+        "Sir, maine suna: " +
+        original
+    );
+
+}
+
+
+/* =========================================
+   COMMAND MATCH
+========================================= */
+
+function has(text,list){
+
+    for(let i=0;i<list.length;i++){
+
+        if(text.includes(list[i])){
+            return true;
+        }
+
+    }
+
+    return false;
+}
+
+
+/* =========================================
+   SEARCH QUERY
+========================================= */
+
+function extractSearch(text){
+
+    let q = text;
+
+
+    const removeWords = [
+
+        "google par",
+        "google pe",
+        "google mein",
+        "google me",
+
+        "search karo",
+        "search kar",
+        "search",
+
+        "dhoondo",
+        "dhundo",
+
+        "khojo",
+
+        "talash karo",
+        "talash kar",
+
+        "please",
+
+        "sir",
+
+        "jarves",
+        "jarvis"
+
+    ];
+
+
+    removeWords.forEach(function(word){
+
+        q =
+            q.replace(word,"");
+
+    });
+
+
+    return q
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+/* =========================================
+   LOAD VOICES
+========================================= */
+
+window.speechSynthesis.onvoiceschanged =
+function(){
+
+    window.speechSynthesis.getVoices();
+
+};
 
 </script>
 
