@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVES V8</title>
+<title>JARVES V9</title>
 
 <style>
 *{box-sizing:border-box}
@@ -143,7 +143,7 @@ button:active{
 <h1>JARVES</h1>
 
 <div class="subtitle">
-PERSONAL AI ASSISTANT • V8
+PERSONAL AI ASSISTANT • V9
 </div>
 
 <div id="status">
@@ -154,7 +154,7 @@ System Ready
     <div class="core"></div>
 </div>
 
-<button onclick="talkToJarves()">
+<button id="talkBtn" onclick="talkToJarves()">
 🎙️ Talk to Jarves
 </button>
 
@@ -175,21 +175,26 @@ Jarves: Yes Sir, I am ready.
 
 <script>
 
-/* =========================================
-   JARVES V8
-========================================= */
+/* =====================================
+   JARVES V9
+   STABLE VOICE SYSTEM
+===================================== */
 
 let recognition = null;
 let listening = false;
 
 
-/* =========================================
-   VOICE OUTPUT
-========================================= */
+/* =====================================
+   SPEAK
+===================================== */
 
 function speak(text){
 
     try{
+
+        if(!window.speechSynthesis){
+            return;
+        }
 
         window.speechSynthesis.cancel();
 
@@ -201,32 +206,20 @@ function speak(text){
         msg.pitch = 0.82;
         msg.volume = 1;
 
-        const voices =
-            window.speechSynthesis.getVoices();
-
-        const male =
-            voices.find(v =>
-                /David|Mark|Daniel|George|Male/i
-                .test(v.name)
-            );
-
-        if(male){
-            msg.voice = male;
-        }
-
         window.speechSynthesis.speak(msg);
 
-    }catch(e){
+    }catch(error){
 
-        console.log(e);
+        console.log("Speech:",error);
 
     }
+
 }
 
 
-/* =========================================
-   SCREEN MESSAGE
-========================================= */
+/* =====================================
+   MESSAGE
+===================================== */
 
 function addMessage(type,text){
 
@@ -239,39 +232,57 @@ function addMessage(type,text){
     div.className = type;
 
     if(type === "you"){
-        div.innerText = "You: " + text;
-    }
 
-    else if(type === "jarves"){
-        div.innerText = "Jarves: " + text;
-    }
+        div.innerText =
+            "You: " + text;
 
-    else{
+    }else if(type === "jarves"){
+
+        div.innerText =
+            "Jarves: " + text;
+
+    }else{
+
         div.innerText = text;
+
     }
 
     box.appendChild(div);
 
     box.scrollTop =
         box.scrollHeight;
+
 }
 
 
-/* =========================================
-   JARVES RESPONSE
-========================================= */
+/* =====================================
+   RESPONSE
+===================================== */
 
 function reply(text){
 
-    addMessage("jarves",text);
-    speak(text);
+    addMessage(
+        "jarves",
+        text
+    );
+
+    /*
+       Small delay prevents Chrome
+       speech/recognition conflict.
+    */
+
+    setTimeout(function(){
+
+        speak(text);
+
+    },150);
 
 }
 
 
-/* =========================================
+/* =====================================
    WAKE
-========================================= */
+===================================== */
 
 function wakeJarves(){
 
@@ -282,9 +293,9 @@ function wakeJarves(){
 }
 
 
-/* =========================================
-   MICROPHONE
-========================================= */
+/* =====================================
+   LISTEN
+===================================== */
 
 function talkToJarves(){
 
@@ -292,39 +303,52 @@ function talkToJarves(){
         return;
     }
 
-    const SpeechRecognition =
+
+    const SR =
         window.SpeechRecognition ||
         window.webkitSpeechRecognition;
 
-    if(!SpeechRecognition){
+
+    if(!SR){
 
         addMessage(
             "error",
-            "Voice recognition is not supported in this Chrome."
+            "Voice recognition is not supported."
         );
 
         return;
     }
 
 
-    recognition =
-        new SpeechRecognition();
-
-
     /*
-       Roman Urdu + English
+       Stop any previous speech
+       before microphone starts.
     */
 
-    recognition.lang = "en-US";
-
-    recognition.continuous = false;
-
-    recognition.interimResults = false;
-
-    recognition.maxAlternatives = 3;
+    try{
+        window.speechSynthesis.cancel();
+    }catch(e){}
 
 
-    recognition.onstart = function(){
+    recognition =
+        new SR();
+
+
+    recognition.lang =
+        "en-US";
+
+    recognition.continuous =
+        false;
+
+    recognition.interimResults =
+        false;
+
+    recognition.maxAlternatives =
+        1;
+
+
+    recognition.onstart =
+    function(){
 
         listening = true;
 
@@ -335,44 +359,58 @@ function talkToJarves(){
     };
 
 
-    recognition.onresult = function(event){
+    recognition.onresult =
+    function(event){
 
         listening = false;
 
+
         const text =
-            event.results[0][0].transcript;
+            event.results[0][0]
+            .transcript;
+
 
         addMessage(
             "you",
             text
         );
 
+
         document.getElementById("status")
         .innerText =
         "Processing...";
 
-        processCommand(text);
+
+        /*
+           Wait until recognition
+           is completely finished.
+        */
+
+        setTimeout(function(){
+
+            processCommand(text);
+
+        },300);
 
     };
 
 
-    recognition.onerror = function(event){
+    recognition.onerror =
+    function(event){
 
         listening = false;
+
 
         document.getElementById("status")
         .innerText =
         "System Ready";
 
+
         if(event.error === "not-allowed"){
 
             addMessage(
                 "error",
-                "Microphone permission is required."
-            );
-
-            speak(
-                "Sir, please allow microphone permission."
+                "Sir, microphone permission allow karein."
             );
 
         }
@@ -381,7 +419,7 @@ function talkToJarves(){
 
             addMessage(
                 "error",
-                "I did not hear you Sir."
+                "Sir, mujhe aap ki awaaz nahi mili."
             );
 
         }
@@ -390,7 +428,8 @@ function talkToJarves(){
 
             addMessage(
                 "error",
-                "Voice error: " + event.error
+                "Voice error: " +
+                event.error
             );
 
         }
@@ -398,7 +437,8 @@ function talkToJarves(){
     };
 
 
-    recognition.onend = function(){
+    recognition.onend =
+    function(){
 
         listening = false;
 
@@ -417,16 +457,19 @@ function talkToJarves(){
 
         listening = false;
 
-        console.log(error);
+        console.log(
+            "Recognition start:",
+            error
+        );
 
     }
 
 }
 
 
-/* =========================================
-   NORMALIZE
-========================================= */
+/* =====================================
+   CLEAN TEXT
+===================================== */
 
 function clean(text){
 
@@ -439,9 +482,68 @@ function clean(text){
 }
 
 
-/* =========================================
-   COMMAND PROCESSOR
-========================================= */
+/* =====================================
+   COMMAND MATCH
+===================================== */
+
+function has(text,words){
+
+    for(
+        let i=0;
+        i<words.length;
+        i++
+    ){
+
+        if(
+            text.includes(words[i])
+        ){
+
+            return true;
+
+        }
+
+    }
+
+    return false;
+
+}
+
+
+/* =====================================
+   OPEN WEBSITE
+===================================== */
+
+function openSite(url,name){
+
+    const newTab =
+        window.open(
+            url,
+            "_blank"
+        );
+
+
+    if(!newTab){
+
+        reply(
+            "Sir, Chrome ne new tab block kar diya. Please allow pop-ups for this page."
+        );
+
+        return;
+
+    }
+
+
+    reply(
+        name +
+        " khol raha hoon Sir."
+    );
+
+}
+
+
+/* =====================================
+   COMMAND ENGINE
+===================================== */
 
 function processCommand(original){
 
@@ -449,18 +551,18 @@ function processCommand(original){
         clean(original);
 
 
-    /* -------------------------
-       GREETING
-    ------------------------- */
+    /* HELLO */
 
-    if(has(command,[
-        "hello",
-        "hi",
-        "hey",
-        "salam",
-        "assalamualaikum",
-        "aoa"
-    ])){
+    if(
+        has(command,[
+            "hello",
+            "hi",
+            "hey",
+            "salam",
+            "assalamualaikum",
+            "aoa"
+        ])
+    ){
 
         reply(
             "Wa Alaikum Assalam Sir. How can I help you?"
@@ -470,14 +572,14 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       JARVES
-    ------------------------- */
+    /* JARVES */
 
-    if(has(command,[
-        "jarves",
-        "jarvis"
-    ])){
+    if(
+        has(command,[
+            "jarves",
+            "jarvis"
+        ])
+    ){
 
         reply(
             "Yes Sir. I am listening."
@@ -487,20 +589,20 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       WHO ARE YOU
-    ------------------------- */
+    /* NAME */
 
-    if(has(command,[
-        "who are you",
-        "what is your name",
-        "your name",
-        "tum kon ho",
-        "ap kon ho",
-        "aap kon ho",
-        "naam kya hai",
-        "ap ka naam"
-    ])){
+    if(
+        has(command,[
+            "who are you",
+            "what is your name",
+            "your name",
+            "tum kon ho",
+            "ap kon ho",
+            "aap kon ho",
+            "naam kya hai",
+            "ap ka naam"
+        ])
+    ){
 
         reply(
             "I am Jarves, your personal AI assistant."
@@ -510,16 +612,16 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       HOW ARE YOU
-    ------------------------- */
+    /* HOW ARE YOU */
 
-    if(has(command,[
-        "how are you",
-        "kaise ho",
-        "kese ho",
-        "kaisay ho"
-    ])){
+    if(
+        has(command,[
+            "how are you",
+            "kaise ho",
+            "kese ho",
+            "kaisay ho"
+        ])
+    ){
 
         reply(
             "I am fully operational Sir."
@@ -529,143 +631,102 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       YOUTUBE
-    ------------------------- */
+    /* YOUTUBE */
 
-    if(has(command,[
-        "youtube",
-        "you tube",
-        "youtube kholo",
-        "youtube khol",
-        "youtube open"
-    ])){
+    if(
+        has(command,[
+            "youtube",
+            "you tube"
+        ])
+    ){
 
-        reply(
-            "YouTube khol raha hoon Sir."
+        openSite(
+            "https://www.youtube.com/",
+            "YouTube"
         );
-
-        setTimeout(function(){
-
-            window.location.href =
-            "https://www.youtube.com/";
-
-        },900);
 
         return;
     }
 
 
-    /* -------------------------
-       WHATSAPP
-    ------------------------- */
+    /* WHATSAPP */
 
-    if(has(command,[
-        "whatsapp",
-        "what's app",
-        "whats app",
-        "whatsapp kholo",
-        "whatsapp khol"
-    ])){
+    if(
+        has(command,[
+            "whatsapp",
+            "what's app",
+            "whats app"
+        ])
+    ){
 
-        reply(
-            "WhatsApp Web khol raha hoon Sir."
+        openSite(
+            "https://web.whatsapp.com/",
+            "WhatsApp"
         );
-
-        setTimeout(function(){
-
-            window.location.href =
-            "https://web.whatsapp.com/";
-
-        },900);
 
         return;
     }
 
 
-    /* -------------------------
-       FACEBOOK
-    ------------------------- */
+    /* FACEBOOK */
 
-    if(has(command,[
-        "facebook",
-        "facebook kholo",
-        "facebook khol"
-    ])){
+    if(
+        has(command,[
+            "facebook"
+        ])
+    ){
 
-        reply(
-            "Facebook khol raha hoon Sir."
+        openSite(
+            "https://www.facebook.com/",
+            "Facebook"
         );
-
-        setTimeout(function(){
-
-            window.location.href =
-            "https://www.facebook.com/";
-
-        },900);
 
         return;
     }
 
 
-    /* -------------------------
-       INSTAGRAM
-    ------------------------- */
+    /* INSTAGRAM */
 
-    if(has(command,[
-        "instagram",
-        "instagram kholo",
-        "instagram khol"
-    ])){
+    if(
+        has(command,[
+            "instagram"
+        ])
+    ){
 
-        reply(
-            "Instagram khol raha hoon Sir."
+        openSite(
+            "https://www.instagram.com/",
+            "Instagram"
         );
-
-        setTimeout(function(){
-
-            window.location.href =
-            "https://www.instagram.com/";
-
-        },900);
 
         return;
     }
 
 
-    /* -------------------------
-       GOOGLE SEARCH
-    ------------------------- */
+    /* GOOGLE SEARCH */
 
     if(
         command.includes("search") ||
-        command.includes("search karo") ||
-        command.includes("search kar") ||
         command.includes("dhoondo") ||
         command.includes("dhundo") ||
         command.includes("khojo") ||
-        command.includes("talash karo") ||
-        command.includes("talash kar")
+        command.includes("talash")
     ){
 
         const query =
             extractSearch(command);
 
-        if(query){
 
-            reply(
-                "Google par " +
-                query +
-                " search kar raha hoon Sir."
+        if(query.length > 0){
+
+            const url =
+                "https://www.google.com/search?q=" +
+                encodeURIComponent(query);
+
+
+            openSite(
+                url,
+                "Google search"
             );
-
-            setTimeout(function(){
-
-                window.location.href =
-                "https://www.google.com/search?q="
-                + encodeURIComponent(query);
-
-            },900);
 
         }else{
 
@@ -679,9 +740,7 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       GOOGLE OPEN
-    ------------------------- */
+    /* GOOGLE */
 
     if(
         command === "google" ||
@@ -691,36 +750,37 @@ function processCommand(original){
         command.includes("open google")
     ){
 
-        reply(
-            "Google khol raha hoon Sir."
+        openSite(
+            "https://www.google.com/",
+            "Google"
         );
-
-        setTimeout(function(){
-
-            window.location.href =
-            "https://www.google.com/";
-
-        },900);
 
         return;
     }
 
 
-    /* -------------------------
-       TIME
-    ------------------------- */
+    /* TIME */
 
-    if(has(command,[
-        "time",
-        "time batao",
-        "waqt batao",
-        "kitne baje",
-        "kitne bajay",
-        "abhi kitne baje"
-    ])){
+    if(
+        has(command,[
+            "time batao",
+            "what time",
+            "kitne baje",
+            "kitne bajay",
+            "waqt batao"
+        ])
+    ){
 
         const time =
-            new Date().toLocaleTimeString();
+            new Date()
+            .toLocaleTimeString(
+                "en-US",
+                {
+                    hour:"numeric",
+                    minute:"2-digit"
+                }
+            );
+
 
         reply(
             "Sir, abhi " +
@@ -732,23 +792,32 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       DATE
-    ------------------------- */
+    /* DATE */
 
-    if(has(command,[
-        "date",
-        "date batao",
-        "aaj ki date",
-        "aj ki date",
-        "today date"
-    ])){
+    if(
+        has(command,[
+            "date batao",
+            "aaj ki date",
+            "aj ki date",
+            "today date"
+        ])
+    ){
 
         const date =
-            new Date().toLocaleDateString();
+            new Date()
+            .toLocaleDateString(
+                "en-US",
+                {
+                    weekday:"long",
+                    year:"numeric",
+                    month:"long",
+                    day:"numeric"
+                }
+            );
+
 
         reply(
-            "Sir, aaj ki date " +
+            "Sir, aaj " +
             date +
             " hai."
         );
@@ -757,15 +826,15 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       THANKS
-    ------------------------- */
+    /* THANK YOU */
 
-    if(has(command,[
-        "thank you",
-        "thanks",
-        "shukriya"
-    ])){
+    if(
+        has(command,[
+            "thank you",
+            "thanks",
+            "shukriya"
+        ])
+    ){
 
         reply(
             "You're welcome Sir."
@@ -775,16 +844,16 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       STOP
-    ------------------------- */
+    /* STOP SPEAKING */
 
-    if(has(command,[
-        "stop",
-        "bas karo",
-        "band karo",
-        "chup ho jao"
-    ])){
+    if(
+        has(command,[
+            "stop speaking",
+            "chup ho jao",
+            "bas karo",
+            "band karo"
+        ])
+    ){
 
         window.speechSynthesis.cancel();
 
@@ -797,46 +866,27 @@ function processCommand(original){
     }
 
 
-    /* -------------------------
-       UNKNOWN
-    ------------------------- */
+    /* UNKNOWN */
 
     reply(
         "Sir, maine suna: " +
-        original
+        original +
+        ". Ye command abhi mere system mein nahi hai."
     );
 
 }
 
 
-/* =========================================
-   COMMAND MATCH
-========================================= */
-
-function has(text,list){
-
-    for(let i=0;i<list.length;i++){
-
-        if(text.includes(list[i])){
-            return true;
-        }
-
-    }
-
-    return false;
-}
-
-
-/* =========================================
-   SEARCH QUERY
-========================================= */
+/* =====================================
+   SEARCH EXTRACTION
+===================================== */
 
 function extractSearch(text){
 
     let q = text;
 
 
-    const removeWords = [
+    const words = [
 
         "google par",
         "google pe",
@@ -854,9 +904,9 @@ function extractSearch(text){
 
         "talash karo",
         "talash kar",
+        "talash",
 
         "please",
-
         "sir",
 
         "jarves",
@@ -865,12 +915,17 @@ function extractSearch(text){
     ];
 
 
-    removeWords.forEach(function(word){
+    words.forEach(
+        function(word){
 
-        q =
-            q.replace(word,"");
+            q =
+                q.replace(
+                    word,
+                    ""
+                );
 
-    });
+        }
+    );
 
 
     return q
@@ -878,18 +933,6 @@ function extractSearch(text){
         .trim();
 
 }
-
-
-/* =========================================
-   LOAD VOICES
-========================================= */
-
-window.speechSynthesis.onvoiceschanged =
-function(){
-
-    window.speechSynthesis.getVoices();
-
-};
 
 </script>
 
