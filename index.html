@@ -1,969 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JARVES V10</title>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-margin:0;
-min-height:100vh;
-background:#02070d;
-color:#00eaff;
-font-family:Arial,sans-serif;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-.container{
-width:94%;
-max-width:520px;
-min-height:90vh;
-padding:22px;
-text-align:center;
-border:1px solid #00eaff;
-border-radius:26px;
-background:linear-gradient(145deg,#07131d,#020910);
-box-shadow:0 0 20px #00eaff55,inset 0 0 25px #00eaff11;
-}
-
-h1{
-margin:5px 0;
-font-size:38px;
-letter-spacing:4px;
-text-shadow:0 0 18px #00eaff;
-}
-
-.subtitle{
-font-size:12px;
-color:#73dfe8;
-letter-spacing:2px;
-}
-
-#status{
-margin:14px 0;
-color:#a5ffff;
-min-height:20px;
-}
-
-.reactor{
-width:190px;
-height:190px;
-margin:20px auto;
-border:8px solid #00eaff;
-border-top-color:transparent;
-border-bottom-color:#006b7a;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-box-shadow:0 0 20px #00eaff,0 0 55px #00eaff33;
-animation:spin 4s linear infinite;
-}
-
-.core{
-width:92px;
-height:92px;
-border-radius:50%;
-background:#00eaff;
-box-shadow:0 0 20px #00eaff,0 0 55px #00eaff,0 0 90px #00eaff66;
-animation:pulse 1.5s infinite;
-}
-
-@keyframes spin{
-from{transform:rotate(0deg)}
-to{transform:rotate(360deg)}
-}
-
-@keyframes pulse{
-0%,100%{transform:scale(.9)}
-50%{transform:scale(1)}
-}
-
-button{
-width:92%;
-padding:16px;
-margin:7px;
-border:1px solid #00eaff;
-border-radius:16px;
-background:#06131c;
-color:#00eaff;
-font-size:17px;
-box-shadow:0 0 10px #00eaff22;
-}
-
-button:active{
-background:#00eaff;
-color:#001018;
-}
-
-#output{
-height:180px;
-overflow-y:auto;
-margin-top:18px;
-padding:14px;
-border:1px solid #00eaff44;
-border-radius:16px;
-text-align:left;
-background:#020910;
-}
-
-.you{
-color:#ffffff;
-margin:9px 0;
-}
-
-.jarves{
-color:#00eaff;
-margin:9px 0;
-}
-
-.error{
-color:#ff7777;
-margin:9px 0;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Jarves - AI Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a1a;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: radial-gradient(circle at 20% 50%, #1a1a3e 0%, #0a0a1a 100%);
+        }
+        .container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(20, 20, 50, 0.9);
+            border-radius: 30px;
+            padding: 25px;
+            border: 1px solid #00ffcc33;
+            box-shadow: 0 20px 60px rgba(0, 255, 204, 0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: #00ffcc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 30px #00ffcc44;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffcc, #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status {
+            color: #00ffcc;
+            font-size: 14px;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #00ffcc;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(0.8); }
+        }
+        .chat-box {
+            background: #12122a;
+            border-radius: 20px;
+            padding: 20px;
+            height: 350px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid #1a1a3e;
+        }
+        .chat-box::-webkit-scrollbar {
+            width: 4px;
+        }
+        .chat-box::-webkit-scrollbar-thumb {
+            background: #00ffcc;
+            border-radius: 10px;
+        }
+        .message {
+            margin-bottom: 12px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-msg {
+            background: linear-gradient(135deg, #00ffcc, #00aaff);
+            color: #0a0a1a;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        .bot-msg {
+            background: #1a2a3a;
+            color: #ddd;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 50px;
+            border: 1px solid #1a1a3e;
+            background: #12122a;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .input-area input:focus {
+            border-color: #00ffcc;
+            box-shadow: 0 0 20px #00ffcc22;
+        }
+        .input-area button {
+            padding: 14px 24px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #00ffcc, #00aaff);
+            color: #0a0a1a;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .input-area button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #00ffcc44;
+        }
+        .input-area button:active {
+            transform: scale(0.95);
+        }
+        .voice-btn {
+            padding: 14px 18px;
+            border-radius: 50px;
+            border: 1px solid #1a1a3e;
+            background: #12122a;
+            color: #00ffcc;
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .voice-btn:hover {
+            background: #1a2a3a;
+            border-color: #00ffcc;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #444466;
+        }
+        .footer a {
+            color: #00ffcc;
+            text-decoration: none;
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="container">
-
-<h1>JARVES</h1>
-
-<div class="subtitle">
-PERSONAL AI ASSISTANT • V10
-</div>
-
-<div id="status">
-System Ready
-</div>
-
-<div class="reactor">
-<div class="core"></div>
-</div>
-
-<button onclick="talkToJarves()">
-🎙️ Talk to Jarves
-</button>
-
-<button onclick="wakeJarves()">
-⚡ Wake Jarves
-</button>
-
-<div id="output">
-
-<div class="jarves">
-Jarves: Yes Sir, I am ready.
-</div>
-
-</div>
-
-</div>
-
-<script>
-
-/* ==============================
-   JARVES V10
-   ============================== */
-
-let recognition=null;
-let listening=false;
-let reservedTab=null;
-
-
-/* ==============================
-   MALE VOICE
-   ============================== */
-
-function getMaleVoice(){
-
-const voices=
-window.speechSynthesis.getVoices();
-
-if(!voices.length){
-return null;
-}
-
-const preferred=[
-"Microsoft David",
-"Microsoft Mark",
-"Google US English Male",
-"English Male",
-"David",
-"Mark",
-"Daniel",
-"George",
-"Alex"
-];
-
-for(let name of preferred){
-
-const found=
-voices.find(v=>
-v.name.toLowerCase()
-.includes(name.toLowerCase())
-);
-
-if(found){
-return found;
-}
-
-}
-
-/*
-Fallback:
-try to avoid obvious female voices.
-*/
-
-const male=
-voices.find(v=>
-!/(female|zira|samantha|victoria|karen|susan|google uk english female)/i
-.test(v.name)
-&& /en/i.test(v.lang)
-);
-
-return male || voices[0];
-
-}
-
-
-/* ==============================
-   SPEAK
-   ============================== */
-
-function speak(text){
-
-try{
-
-window.speechSynthesis.cancel();
-
-const msg=
-new SpeechSynthesisUtterance(text);
-
-msg.lang="en-US";
-msg.rate=0.88;
-msg.pitch=0.72;
-msg.volume=1;
-
-const voice=
-getMaleVoice();
-
-if(voice){
-msg.voice=voice;
-}
-
-window.speechSynthesis.speak(msg);
-
-}catch(e){
-
-console.log(e);
-
-}
-
-}
-
-
-/* ==============================
-   MESSAGE
-   ============================== */
-
-function addMessage(type,text){
-
-const box=
-document.getElementById("output");
-
-const div=
-document.createElement("div");
-
-div.className=type;
-
-if(type==="you"){
-div.innerText="You: "+text;
-}
-else if(type==="jarves"){
-div.innerText="Jarves: "+text;
-}
-else{
-div.innerText=text;
-}
-
-box.appendChild(div);
-
-box.scrollTop=box.scrollHeight;
-
-}
-
-
-/* ==============================
-   REPLY
-   ============================== */
-
-function reply(text){
-
-addMessage("jarves",text);
-
-setTimeout(()=>{
-speak(text);
-},200);
-
-}
-
-
-/* ==============================
-   WAKE
-   ============================== */
-
-function wakeJarves(){
-
-reply(
-"Yes Sir. Jarves is online."
-);
-
-}
-
-
-/* ==============================
-   RESERVE NEW TAB
-   ============================== */
-
-function reserveTab(){
-
-try{
-
-if(!reservedTab ||
-reservedTab.closed){
-
-reservedTab=
-window.open(
-"about:blank",
-"_blank"
-);
-
-}
-
-}catch(e){
-
-reservedTab=null;
-
-}
-
-}
-
-
-/* ==============================
-   OPEN WEBSITE
-   ============================== */
-
-function openWebsite(url,name){
-
-/*
-If tab was successfully reserved,
-use it.
-*/
-
-if(reservedTab &&
-!reservedTab.closed){
-
-try{
-
-reservedTab.location.href=url;
-reservedTab.focus();
-
-reply(
-name+" khol raha hoon Sir."
-);
-
-reservedTab=null;
-
-return;
-
-}catch(e){
-
-console.log(e);
-
-}
-
-}
-
-
-/*
-Fallback.
-*/
-
-const tab=
-window.open(url,"_blank");
-
-if(tab){
-
-reply(
-name+" khol raha hoon Sir."
-);
-
-}else{
-
-reply(
-"Sir, Chrome ne new tab block kar diya."
-);
-
-}
-
-}
-
-
-/* ==============================
-   LISTEN
-   ============================== */
-
-function talkToJarves(){
-
-if(listening){
-return;
-}
-
-
-/*
-Reserve new tab while this
-button click is still trusted
-by Chrome.
-*/
-
-reserveTab();
-
-
-const SR=
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
-
-
-if(!SR){
-
-addMessage(
-"error",
-"Voice recognition is not supported."
-);
-
-return;
-
-}
-
-
-/*
-Stop speaking before listening.
-*/
-
-try{
-window.speechSynthesis.cancel();
-}catch(e){}
-
-
-recognition=
-new SR();
-
-recognition.lang="en-US";
-recognition.continuous=false;
-recognition.interimResults=false;
-recognition.maxAlternatives=1;
-
-
-recognition.onstart=function(){
-
-listening=true;
-
-document.getElementById("status")
-.innerText="Listening Sir...";
-
-};
-
-
-recognition.onresult=function(event){
-
-listening=false;
-
-const text=
-event.results[0][0].transcript;
-
-addMessage(
-"you",
-text
-);
-
-document.getElementById("status")
-.innerText="Processing...";
-
-
-setTimeout(()=>{
-processCommand(text);
-},250);
-
-};
-
-
-recognition.onerror=function(event){
-
-listening=false;
-
-document.getElementById("status")
-.innerText="System Ready";
-
-if(event.error==="not-allowed"){
-
-addMessage(
-"error",
-"Sir, microphone permission allow karein."
-);
-
-}
-
-else if(event.error==="no-speech"){
-
-addMessage(
-"error",
-"Sir, mujhe aap ki awaaz nahi mili."
-);
-
-}
-
-else{
-
-addMessage(
-"error",
-"Voice error: "+event.error
-);
-
-}
-
-};
-
-
-recognition.onend=function(){
-
-listening=false;
-
-document.getElementById("status")
-.innerText="System Ready";
-
-};
-
-
-try{
-
-recognition.start();
-
-}catch(e){
-
-listening=false;
-console.log(e);
-
-}
-
-}
-
-
-/* ==============================
-   CLEAN
-   ============================== */
-
-function clean(text){
-
-return text
-.toLowerCase()
-.replace(/[.,!?]/g," ")
-.replace(/\s+/g," ")
-.trim();
-
-}
-
-
-/* ==============================
-   MATCH
-   ============================== */
-
-function has(text,list){
-
-for(let word of list){
-
-if(text.includes(word)){
-return true;
-}
-
-}
-
-return false;
-
-}
-
-
-/* ==============================
-   SEARCH EXTRACTION
-   ============================== */
-
-function extractSearch(text){
-
-let q=text;
-
-const remove=[
-
-"google par",
-"google pe",
-"google mein",
-"google me",
-
-"search karo",
-"search kar",
-"search",
-
-"dhoondo",
-"dhundo",
-"khojo",
-
-"talash karo",
-"talash kar",
-"talash",
-
-"please",
-"sir",
-"jarves",
-"jarvis"
-
-];
-
-for(let word of remove){
-
-q=q.replace(word,"");
-
-}
-
-return q
-.replace(/\s+/g," ")
-.trim();
-
-}
-
-
-/* ==============================
-   COMMAND ENGINE
-   ============================== */
-
-function processCommand(original){
-
-const command=
-clean(original);
-
-
-/* HELLO */
-
-if(has(command,[
-"hello",
-"hi",
-"hey",
-"salam",
-"assalamualaikum",
-"aoa"
-])){
-
-reply(
-"Wa Alaikum Assalam Sir. How can I help you?"
-);
-
-return;
-
-}
-
-
-/* JARVES */
-
-if(has(command,[
-"jarves",
-"jarvis"
-])){
-
-reply(
-"Yes Sir. I am listening."
-);
-
-return;
-
-}
-
-
-/* NAME */
-
-if(has(command,[
-"who are you",
-"what is your name",
-"your name",
-"tum kon ho",
-"ap kon ho",
-"aap kon ho",
-"naam kya hai",
-"ap ka naam"
-])){
-
-reply(
-"I am Jarves, your personal AI assistant."
-);
-
-return;
-
-}
-
-
-/* YOUTUBE */
-
-if(has(command,[
-"youtube",
-"you tube"
-])){
-
-openWebsite(
-"https://www.youtube.com/",
-"YouTube"
-);
-
-return;
-
-}
-
-
-/* WHATSAPP */
-
-if(has(command,[
-"whatsapp",
-"what's app",
-"whats app"
-])){
-
-openWebsite(
-"https://web.whatsapp.com/",
-"WhatsApp"
-);
-
-return;
-
-}
-
-
-/* FACEBOOK */
-
-if(has(command,[
-"facebook"
-])){
-
-openWebsite(
-"https://www.facebook.com/",
-"Facebook"
-);
-
-return;
-
-}
-
-
-/* INSTAGRAM */
-
-if(has(command,[
-"instagram"
-])){
-
-openWebsite(
-"https://www.instagram.com/",
-"Instagram"
-);
-
-return;
-
-}
-
-
-/* GOOGLE SEARCH */
-
-if(
-command.includes("search") ||
-command.includes("dhoondo") ||
-command.includes("dhundo") ||
-command.includes("khojo") ||
-command.includes("talash")
-){
-
-const query=
-extractSearch(command);
-
-if(query){
-
-openWebsite(
-"https://www.google.com/search?q="+
-encodeURIComponent(query),
-"Google search"
-);
-
-}else{
-
-reply(
-"Sir, kya search karna hai?"
-);
-
-}
-
-return;
-
-}
-
-
-/* GOOGLE */
-
-if(
-command==="google" ||
-command.includes("google kholo") ||
-command.includes("google khol") ||
-command.includes("google open") ||
-command.includes("open google")
-){
-
-openWebsite(
-"https://www.google.com/",
-"Google"
-);
-
-return;
-
-}
-
-
-/* TIME */
-
-if(has(command,[
-"time batao",
-"what time",
-"kitne baje",
-"kitne bajay",
-"waqt batao"
-])){
-
-const time=
-new Date().toLocaleTimeString(
-"en-US",
-{
-hour:"numeric",
-minute:"2-digit"
-}
-);
-
-reply(
-"Sir, abhi "+time+" hai."
-);
-
-return;
-
-}
-
-
-/* DATE */
-
-if(has(command,[
-"date batao",
-"aaj ki date",
-"aj ki date",
-"today date"
-])){
-
-const date=
-new Date().toLocaleDateString(
-"en-US",
-{
-weekday:"long",
-year:"numeric",
-month:"long",
-day:"numeric"
-}
-);
-
-reply(
-"Sir, aaj "+date+" hai."
-);
-
-return;
-
-}
-
-
-/* THANKS */
-
-if(has(command,[
-"thank you",
-"thanks",
-"shukriya"
-])){
-
-reply(
-"You're welcome Sir."
-);
-
-return;
-
-}
-
-
-/* STOP */
-
-if(has(command,[
-"stop speaking",
-"chup ho jao",
-"bas karo"
-])){
-
-window.speechSynthesis.cancel();
-
-addMessage(
-"jarves",
-"Okay Sir."
-);
-
-return;
-
-}
-
-
-/* UNKNOWN */
-
-reply(
-"Sir, maine suna: "+original
-);
-
-}
-
-
-/* ==============================
-   LOAD VOICES
-   ============================== */
-
-window.speechSynthesis.onvoiceschanged=
-function(){
-
-window.speechSynthesis.getVoices();
-
-};
-
-
-/*
-Force voice list to load.
-*/
-
-window.addEventListener(
-"load",
-function(){
-
-setTimeout(()=>{
-window.speechSynthesis.getVoices();
-},500);
-
-});
-
-</script>
-
+    <div class="container">
+        <div class="header">
+            <div class="logo">🤖</div>
+            <div class="title">Smart Jarves</div>
+            <div class="status">
+                <span class="dot"></span>
+                Active
+            </div>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message bot-msg">👋 Hello Sir! Main Smart Jarves hoon. Aap kaise hain?</div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Type your command..." />
+            <button id="sendBtn">Send</button>
+            <button class="voice-btn" id="voiceBtn" title="Click and speak">🎤</button>
+        </div>
+
+        <div class="footer">
+            Made with ❤️ | <a href="#" target="_blank">GitHub</a>
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Predefined responses (Offline mode - 50+ commands available)
+        const responses = {
+            'hello': 'Hello Sir! Kaise hain aap?',
+            'hi': 'Hi! Kya help chahiye?',
+            'how are you': 'Main theek hoon Sir, aap kaise hain?',
+            'time': 'Time hai ' + new Date().toLocaleTimeString(),
+            'date': 'Aaj ki tareekh ' + new Date().toLocaleDateString(),
+            'whatsapp': 'Sir, WhatsApp open kar raha hoon. Message type karke send kar dein.',
+            'wifi on': 'WiFi on kar diya Sir!',
+            'wifi off': 'WiFi off kar diya Sir!',
+            'help': 'Commands: hello, time, date, whatsapp, wifi on/off, jarvis, bye',
+            'jarvis': 'Yes Sir! Main sun raha hoon.',
+            'bye': 'Allah Hafiz Sir!',
+            'thanks': 'Welcome Sir!'
+        };
+
+        function getResponse(msg) {
+            const lower = msg.toLowerCase();
+            for (let key in responses) {
+                if (lower.includes(key)) {
+                    return responses[key];
+                }
+            }
+            return 'Sir, mujhe samajh nahi aaya. "help" type karein commands dekhne ke liye.';
+        }
+
+        function addMessage(text, type) {
+            const div = document.createElement('div');
+            div.className = `message ${type}-msg`;
+            div.textContent = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            const response = getResponse(text);
+            setTimeout(() => addMessage(response, 'bot'), 300);
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Voice Input
+        const voiceBtn = document.getElementById('voiceBtn');
+        let recognition = null;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+                voiceBtn.textContent = '⏺';
+                voiceBtn.style.borderColor = '#ff4444';
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                handleSend();
+                voiceBtn.textContent = '🎤';
+                voiceBtn.style.borderColor = '#1a1a3e';
+            };
+
+            recognition.onerror = () => {
+                voiceBtn.textContent = '🎤';
+                voiceBtn.style.borderColor = '#1a1a3e';
+            };
+
+            recognition.onend = () => {
+                voiceBtn.textContent = '🎤';
+                voiceBtn.style.borderColor = '#1a1a3e';
+            };
+        } else {
+            voiceBtn.style.opacity = '0.3';
+            voiceBtn.title = 'Voice not supported in this browser';
+        }
+    </script>
 </body>
 </html>
